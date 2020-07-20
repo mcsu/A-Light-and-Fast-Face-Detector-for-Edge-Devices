@@ -4,6 +4,7 @@ import os
 import numpy
 import cv2
 
+
 # empty data batch class for dynamical properties
 class DataBatch:
     pass
@@ -212,7 +213,8 @@ class Predict(object):
             final_bboxes = NMS(bbox_collection_numpy, NMS_threshold)
             final_bboxes_ = []
             for i in range(final_bboxes.shape[0]):
-                final_bboxes_.append((final_bboxes[i, 0], final_bboxes[i, 1], final_bboxes[i, 2], final_bboxes[i, 3], final_bboxes[i, 4]))
+                final_bboxes_.append((final_bboxes[i, 0], final_bboxes[i, 1], final_bboxes[i, 2], final_bboxes[i, 3],
+                                      final_bboxes[i, 4]))
 
             return final_bboxes_
         else:
@@ -222,23 +224,23 @@ class Predict(object):
 def run_prediction_pickle():
     from config_farm import configuration_30_320_20L_4scales_v1 as cfg
     import mxnet
-
-    data_pickle_file_path = '../data_provider_farm/data_folder/data_list_caltech_test.pkl'
+    data_pickle_file_path = '../data_provider_farm/data_list_caltech_test.pkl'
     from data_provider_farm.pickle_provider import PickleProvider
     pickle_provider = PickleProvider(data_pickle_file_path)
     positive_index = pickle_provider.positive_index
     negative_index = pickle_provider.negative_index
-    all_index = positive_index #+negative_index
-    print("num of positive: %d\nnum of negative: %d" % (len(positive_index), len(negative_index)))
+    all_index = positive_index  # +negative_index
+    print("num of positive: %d\n num of negative: %d" % (len(positive_index), len(negative_index)))
     import random
     random.shuffle(all_index)
 
     symbol_file_path = '../symbol_farm/symbol_30_320_20L_4scales_v1_deploy.json'
-    model_file_path = '../saved_model/configuration_30_320_20L_4scales_v1_2019-09-11-19-25-41/train_30_320_20L_4scales_v1_iter_500000.params'
+    model_file_path = '../saved_model/configuration_30_320_20L_4scales_v1_2019-09-11-19-25-41/' \
+                      'train_30_320_20L_4scales_v1_iter_500000.params'
     my_predictor = Predict(mxnet=mxnet,
                            symbol_file_path=symbol_file_path,
                            model_file_path=model_file_path,
-                           ctx=mxnet.gpu(0),
+                           ctx=mxnet.cpu(0),
                            receptive_field_list=cfg.param_receptive_field_list,
                            receptive_field_stride=cfg.param_receptive_field_stride,
                            bbox_small_list=cfg.param_bbox_small_list,
@@ -263,14 +265,16 @@ def run_prediction_folder():
     import mxnet
 
     debug_folder = './test_images'
-    file_name_list = [file_name for file_name in os.listdir(debug_folder) if file_name.lower().endswith('jpg') or file_name.lower().endswith('png')]
+    file_name_list = [file_name for file_name in os.listdir(debug_folder) if file_name.lower().endswith('jpg')
+                      or file_name.lower().endswith('png')]
 
     symbol_file_path = '../symbol_farm/symbol_30_320_20L_4scales_v1_deploy.json'
-    model_file_path = '../saved_model/configuration_30_320_20L_4scales_v1_2019-09-11-19-25-41/train_30_320_20L_4scales_v1_iter_500000.params'
+    model_file_path = '../saved_model/configuration_30_320_20L_4scales_v1_2019-09-11-19-25-41/' \
+                      'train_30_320_20L_4scales_v1_iter_500000.params'
     my_predictor = Predict(mxnet=mxnet,
                            symbol_file_path=symbol_file_path,
                            model_file_path=model_file_path,
-                           ctx=mxnet.gpu(0),
+                           ctx=mxnet.cpu(0),
                            receptive_field_list=cfg.param_receptive_field_list,
                            receptive_field_stride=cfg.param_receptive_field_stride,
                            bbox_small_list=cfg.param_bbox_small_list,
@@ -281,17 +285,20 @@ def run_prediction_folder():
     for file_name in file_name_list:
         im = cv2.imread(os.path.join(debug_folder, file_name))
 
-        bboxes = my_predictor.predict(im, resize_scale=1, score_threshold=0.5, top_k=10000, NMS_threshold=0.5, NMS_flag=True, skip_scale_branch_list=[])
+        bboxes = my_predictor.predict(im, resize_scale=1, score_threshold=0.5, top_k=10000, NMS_threshold=0.5,
+                                      NMS_flag=True, skip_scale_branch_list=[])
         for bbox in bboxes:
             cv2.rectangle(im, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
 
         if max(im.shape[:2]) > 1440:
             scale = 1440/max(im.shape[:2])
             im = cv2.resize(im, (0, 0), fx=scale, fy=scale)
-        # cv2.imshow('im', im)
-        # cv2.waitKey()
+        cv2.imshow('im', im)
+        cv2.waitKey()
 
 
 if __name__ == '__main__':
-    run_prediction_pickle()
-    # run_prediction_folder()
+    # run_prediction_pickle()
+    run_prediction_folder()
+
+

@@ -1,12 +1,12 @@
 # coding: utf-8
 import sys
 
-sys.path.append('/home/heyonghao/libs/incubator-mxnet/python')
+# sys.path.append('/home/heyonghao/libs/incubator-mxnet/python')
 import mxnet
 
 eval_with_mxnet_flag = False
-symbol_file_path = '/home/heyonghao/projects/ChasingPedestrainDetection/symbol_farm/symbol_30_320_20L_4scales_v1_deploy.json'
-input_shape = (1, 3, 2160, 3840)  # (1,3,240,320) (1,3,480,640) (1,3,720,1280) (1,3,1080,1920) (1,3,2160,3840)
+symbol_file_path = '/Users/hao/Dev/A-Light-and-Fast-Face-Detector-for-Edge-Devices/pedestrian_detection/symbol_farm/symbol_30_320_20L_4scales_v1_deploy.json'
+input_shape = (1, 3, 480, 640)  # (1,3,240,320) (1,3,480,640) (1,3,720,1280) (1,3,1080,1920) (1,3,2160,3840)
 real_run_loops = 200
 
 if eval_with_mxnet_flag:
